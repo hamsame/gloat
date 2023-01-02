@@ -3,6 +3,9 @@ import React from "react"
 import Navbar from "./components/Navbar"
 import Home from "../src/pages/Home"
 import Profile from "./pages/Profile"
+import Signup from "./pages/Signup"
+import Signin from "./pages/Signin"
+import ForgotPassword from "./pages/ForgotPassword"
 
 function App() {
   return (
@@ -11,6 +14,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/signin" element={<Signin />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
         <Navbar />
       </Router>
