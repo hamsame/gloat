@@ -47,7 +47,7 @@ function Signup() {
         displayName: name,
       })
 
-      let formCopy = { ...formData }
+      let formCopy = { ...formData, userRef: auth.currentUser.uid }
       delete formCopy.password
 
       await setDoc(doc(db, "users", user.uid), formCopy)
