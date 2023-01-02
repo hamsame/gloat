@@ -4,23 +4,11 @@ import { formStyle, inputStyle, buttonStyle } from "../components/styles"
 
 import { Box, Container } from "@mui/system"
 import { FormControl, Input, InputLabel } from "@mui/material"
-import IconButton from "@mui/material/IconButton"
-import Visibility from "@mui/icons-material/Visibility"
-import VisibilityOff from "@mui/icons-material/VisibilityOff"
-import InputAdornment from "@mui/material/InputAdornment"
 import Button from "@mui/material/Button"
 
 function ForgotPassword() {
   const [showPassword, setShowPassword] = useState(false)
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
-  const { email, password } = formData
-
-  const onChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+  const [email, setEmail] = useState("")
 
   return (
     <>
@@ -36,7 +24,7 @@ function ForgotPassword() {
               id="email"
               name="email"
               value={email}
-              onChange={onChange}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </FormControl>
           <Button sx={buttonStyle} type="submit">

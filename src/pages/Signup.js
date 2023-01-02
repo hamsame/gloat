@@ -1,7 +1,7 @@
 import React, { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { formStyle, inputStyle, buttonStyle } from "../components/styles"
-
+import { toast } from "react-toastify"
 import { Box, Container } from "@mui/system"
 import { FormControl, Input, InputLabel } from "@mui/material"
 import IconButton from "@mui/material/IconButton"
@@ -10,7 +10,17 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff"
 import InputAdornment from "@mui/material/InputAdornment"
 import Button from "@mui/material/Button"
 
+// firebase
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth"
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"
+import { db } from "../firebase.config"
+
 function Signup() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
@@ -23,11 +33,35 @@ function Signup() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const auth = getAuth()
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      )
+      const user = userCredential.user
+      updateProfile(auth.currentUser, {
+        displayName: name,
+      })
+
+      let formCopy = { ...formData }
+      delete formCopy.password
+
+      await setDoc(doc(db, "users", user.uid), formCopy)
+      navigate("/profile")
+    } catch (error) {
+      toast.error("error")
+    }
+  }
+
   return (
     <>
       <Container sx={{ width: "90%", minHeight: "90vh", margin: "auto" }}>
         <h1>Gloat!</h1>
-        <Box component="form" autoComplete="off">
+        <Box component="form" autoComplete="off" onSubmit={handleSubmit}>
           <h3>Sign Up</h3>
           <FormControl sx={formStyle} variant="standard">
             <InputLabel htmlFor="name">Name:</InputLabel>
@@ -72,7 +106,7 @@ function Signup() {
               }
             />
           </FormControl>
-          <Button sx={buttonStyle} type="submit">
+          <Button sx={buttonStyle} type="submit" onClick={() => handleSubmit()}>
             Sign Up
           </Button>
         </Box>
