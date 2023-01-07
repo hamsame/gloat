@@ -19,4 +19,11 @@ const buttonStyle = {
   },
 }
 
-export { formStyle, inputStyle, buttonStyle }
+const containerStyle = {
+  width: "90%",
+  minHeight: "90vh",
+  margin: "auto",
+  gap: "25%",
+}
+
+export { formStyle, inputStyle, buttonStyle, containerStyle }
