@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { collection, getDocs, doc, setDoc } from "firebase/firestore"
+import { collection, getDocs, doc, setDoc, addDoc } from "firebase/firestore"
 import { db } from "../firebase.config"
 import { getAuth } from "firebase/auth"
 import { containerStyle } from "../components/styles"
@@ -46,7 +46,7 @@ function Home() {
         userRef,
       }
 
-      await setDoc(doc(db, "posts", newPost.date), newPost)
+      await addDoc(collection(db, "posts"), newPost)
 
       toast.success("Your post is uploaded")
       return () => document.querySelector(".form").reset()
