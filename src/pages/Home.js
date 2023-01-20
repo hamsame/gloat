@@ -1,23 +1,29 @@
 import React, { useState, useEffect, useRef } from "react"
-import { collection, getDocs, doc, setDoc, addDoc } from "firebase/firestore"
+import { collection, getDocs, addDoc } from "firebase/firestore"
 import { db } from "../firebase.config"
 import { getAuth } from "firebase/auth"
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage"
+import { v4 as uuidv4 } from "uuid"
 import { containerStyle } from "../components/styles"
 import { Box, Container } from "@mui/system"
 import { toast } from "react-toastify"
 import { FormControl, Input, InputLabel, Button } from "@mui/material"
-import { formStyle, buttonStyle } from "../components/styles"
+import { buttonStyle } from "../components/styles"
 
 function Home() {
-  const [caption, setCaption] = useState("")
+  const [formData, setFormData] = useState({
+    caption: "",
+    images: {},
+  })
+  const { caption, images } = formData
+
   const isMounted = useRef(true)
   const [posts, setPosts] = useState([])
-  const [images, setImages] = useState([])
-
-  const handleImage = (e) => {
-    console.log(e.target.files[0])
-    setImages([...images, URL.createObjectURL(e.target.files[0])])
-  }
 
   const getPosts = async () => {
     let fetchedPosts = []
@@ -33,7 +39,12 @@ function Home() {
   }
 
   const onChange = (e) => {
-    setCaption(e.target.value)
+    if (e.target.files) {
+      setFormData({ ...formData, images: e.target.files })
+    }
+    if (!e.target.files) {
+      setFormData({ ...formData, [e.target.id]: e.target.value })
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -49,6 +60,48 @@ function Home() {
         date: new Date().getTime().toString(),
         userRef,
       }
+
+      // store image in firebase
+      const storeImage = async (image) => {
+        return new Promise((resolve, reject) => {
+          const storage = getStorage()
+          const fileName = `${userRef}-${image.name}-${uuidv4()}`
+          const storageRef = ref(storage, "images/" + fileName)
+          const uploadTask = uploadBytesResumable(storageRef, image)
+
+          uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+              const progress =
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+              console.log("Upload is " + progress + "% done")
+              switch (snapshot.state) {
+                case "paused":
+                  console.log("Upload is paused")
+                  break
+                case "running":
+                  console.log("Upload is running")
+                  break
+              }
+            },
+            (error) => {
+              reject(error)
+            },
+            () => {
+              getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                resolve(downloadURL)
+              })
+            }
+          )
+        })
+      }
+      const imgURLS = await Promise.all(
+        [...images].map((image) => storeImage(image))
+      ).catch(() => {
+        toast.error("image not uploaded")
+        return
+      })
+      newPost = { ...newPost, imgURLS }
 
       await addDoc(collection(db, "posts"), newPost)
 
@@ -71,9 +124,6 @@ function Home() {
   return (
     <Container sx={containerStyle}>
       <h1>Home</h1>
-      {images.map((img) => {
-        return <img src={img} width={"250px"} height={"250px"} alt="" />
-      })}
       <Box
         component="form"
         className="form"
@@ -95,7 +145,13 @@ function Home() {
             onChange={onChange}
           />
         </FormControl>
-        <input type="file" name="photo" id="photo" onChange={handleImage} />
+        <input
+          type="file"
+          name="photo"
+          id="photo"
+          onChange={onChange}
+          multiple
+        />
         <Button
           type="submit"
           onClick={handleSubmit}
