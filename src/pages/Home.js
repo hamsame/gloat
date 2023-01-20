@@ -12,6 +12,12 @@ function Home() {
   const [caption, setCaption] = useState("")
   const isMounted = useRef(true)
   const [posts, setPosts] = useState([])
+  const [images, setImages] = useState([])
+
+  const handleImage = (e) => {
+    console.log(e.target.files[0])
+    setImages([...images, URL.createObjectURL(e.target.files[0])])
+  }
 
   const getPosts = async () => {
     let fetchedPosts = []
@@ -29,8 +35,6 @@ function Home() {
   const onChange = (e) => {
     setCaption(e.target.value)
   }
-
-  // const handleSubmit = () => {}
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -67,6 +71,9 @@ function Home() {
   return (
     <Container sx={containerStyle}>
       <h1>Home</h1>
+      {images.map((img) => {
+        return <img src={img} width={"250px"} height={"250px"} alt="" />
+      })}
       <Box
         component="form"
         className="form"
@@ -88,6 +95,7 @@ function Home() {
             onChange={onChange}
           />
         </FormControl>
+        <input type="file" name="photo" id="photo" onChange={handleImage} />
         <Button
           type="submit"
           onClick={handleSubmit}
