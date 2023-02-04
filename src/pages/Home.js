@@ -14,12 +14,16 @@ import { Box, Container } from "@mui/system"
 import { toast } from "react-toastify"
 import { FormControl, Input, InputLabel, Button } from "@mui/material"
 import { buttonStyle } from "../components/styles"
+import AddAPhotoIcon from "@mui/icons-material/AddAPhoto"
+
+import Posts from "../components/Posts"
 
 function Home() {
   const [formData, setFormData] = useState({
     caption: "",
     images: {},
   })
+
   const { caption, images } = formData
 
   const isMounted = useRef(true)
@@ -51,21 +55,21 @@ function Home() {
     e.preventDefault()
     try {
       const auth = getAuth()
-      const username = auth.currentUser.displayName
-      const userRef = auth.currentUser.uid
 
       let newPost = {
         caption,
-        username,
+        username: auth.currentUser.displayName,
         date: new Date().getTime().toString(),
-        userRef,
+        userRef: auth.currentUser.uid,
       }
 
       // store image in firebase
       const storeImage = async (image) => {
         return new Promise((resolve, reject) => {
           const storage = getStorage()
-          const fileName = `${userRef}-${image.name}-${uuidv4()}`
+          const fileName = `${auth.currentUser.userRef}-${
+            image.name
+          }-${uuidv4()}`
           const storageRef = ref(storage, "images/" + fileName)
           const uploadTask = uploadBytesResumable(storageRef, image)
 
@@ -95,20 +99,26 @@ function Home() {
           )
         })
       }
-      const imgURLS = await Promise.all(
-        [...images].map((image) => storeImage(image))
-      ).catch(() => {
-        toast.error("image not uploaded")
-        return
-      })
-      newPost = { ...newPost, imgURLS }
 
-      await addDoc(collection(db, "posts"), newPost)
+      if (!images == {}) {
+        const imgURLS = await Promise.all(
+          [...images].map((image) => storeImage(image))
+        )
+          .then(addDoc(collection(db, "posts"), newPost))
+          .catch(() => {
+            toast.error("image not uploaded")
+            return
+          })
+        newPost = { ...newPost, imgURLS }
+      } else {
+        await addDoc(collection(db, "posts"), newPost)
+      }
 
       toast.success("Your post is uploaded")
       return () => document.querySelector(".form").reset()
     } catch (error) {
       toast.error("Post not uploaded")
+      // console.log(error)
     }
   }
 
@@ -145,51 +155,23 @@ function Home() {
             onChange={onChange}
           />
         </FormControl>
-        <input
-          type="file"
-          name="photo"
-          id="photo"
-          onChange={onChange}
-          multiple
-        />
-        <Button
-          type="submit"
-          onClick={handleSubmit}
-          sx={buttonStyle}
-          style={{ width: "50%" }}
-        >
+        <Button variant="contained" component="label" style={{ width: "5%" }}>
+          <AddAPhotoIcon />
+          <input
+            type="file"
+            name="photo"
+            id="photo"
+            onChange={onChange}
+            multiple
+            hidden
+          />
+        </Button>
+        <Button type="submit" onClick={handleSubmit} sx={buttonStyle}>
           Share
         </Button>
       </Box>
 
-      <Box>
-        {posts.map((post, index) => {
-          const { caption, userRef, date, displayName, imgURLS } = post
-          return (
-            <article key={index}>
-              <h3>{caption && caption}</h3>
-              <p>{displayName || "User1"}</p>
-              {imgURLS?.map((img, index) => {
-                return (
-                  <Box
-                    component="img"
-                    sx={{
-                      height: 1000,
-                      width: 1000,
-                      maxHeight: { xs: 233, md: 167 },
-                      maxWidth: { xs: 350, md: 250 },
-                      mr: "2rem",
-                      my: 2,
-                    }}
-                    key={index}
-                    src={img}
-                  />
-                )
-              })}
-            </article>
-          )
-        })}
-      </Box>
+      <Posts posts={posts} />
     </Container>
   )
 }
