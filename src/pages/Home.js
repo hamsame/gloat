@@ -100,7 +100,7 @@ function Home() {
         })
       }
 
-      if (!images == {}) {
+      if (images) {
         const imgURLS = await Promise.all(
           [...images].map((image) => storeImage(image))
         )
@@ -110,7 +110,6 @@ function Home() {
             return
           })
         newPost = { ...newPost, imgURLS }
-      } else {
         await addDoc(collection(db, "posts"), newPost)
       }
 
@@ -145,12 +144,13 @@ function Home() {
         }}
       >
         <FormControl variant="standard">
-          <InputLabel htmlFor="caption">Caption</InputLabel>
+          <InputLabel htmlFor="caption">Share something cool:</InputLabel>
           <Input
             sx={{ width: 1 }}
             type="caption"
             id="caption"
             name="caption"
+            autoComplete="off"
             value={caption}
             onChange={onChange}
           />
