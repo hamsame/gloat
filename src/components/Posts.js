@@ -14,6 +14,8 @@ const Posts = ({ posts }) => {
             caption={caption}
             username={username}
             imgURLS={imgURLS}
+            userRef={userRef}
+            date={date}
           />
         )
       })}
