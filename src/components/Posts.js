@@ -1,13 +1,15 @@
 import React from "react"
-import Post from "./Post.js"
 import { Box } from "@mui/system"
 import { getAuth } from "firebase/auth"
+import { db } from "../firebase.config"
+import { doc, deleteDoc } from "firebase/firestore"
 
 const Posts = ({ posts }) => {
   const auth = getAuth()
-  const deleteDoc = () => {
+  const deleteDocu = async (docID) => {
     try {
       console.log("delete doc")
+      await deleteDoc(doc(db, "posts", docID))
     } catch (error) {
       console.log("error")
     }
@@ -15,7 +17,9 @@ const Posts = ({ posts }) => {
   return (
     <Box>
       {posts.map((post, index) => {
-        const { caption, userRef, date, username, imgURLS } = post
+        console.log(post)
+        const { caption, userRef, date, username, imgURLS, docID } = post
+
         let profilePic
 
         return (
@@ -59,7 +63,7 @@ const Posts = ({ posts }) => {
               )
             })}
             {userRef === auth.currentUser.uid && (
-              <button onClick={() => deleteDoc()}>delete post</button>
+              <button onClick={() => deleteDocu(docID)}>delete post</button>
             )}
           </Box>
         )

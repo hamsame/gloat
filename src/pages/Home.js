@@ -16,10 +16,12 @@ function Home() {
     let fetchedPosts = []
     try {
       const allPosts = await getDocs(collection(db, "posts"))
+      console.log(allPosts)
       allPosts.forEach((doc) => {
         fetchedPosts = [...fetchedPosts, doc.data()]
       })
       setPosts(fetchedPosts)
+      console.log(fetchedPosts)
     } catch (error) {
       toast.error("error")
     }

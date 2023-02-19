@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { FormControl, Input, InputLabel, Button } from "@mui/material"
 import { buttonStyle } from "../components/styles"
-import { collection, getDocs, addDoc } from "firebase/firestore"
+import { collection, setDoc, addDoc, doc } from "firebase/firestore"
 import AddAPhotoIcon from "@mui/icons-material/AddAPhoto"
 import { Box } from "@mui/system"
 import { getAuth } from "firebase/auth"
@@ -20,6 +20,7 @@ const NewPostForm = () => {
     caption: "",
     images: {},
   })
+  const docID = uuidv4()
 
   const { caption, images } = formData
   const onChange = (e) => {
@@ -41,6 +42,7 @@ const NewPostForm = () => {
         username: auth.currentUser.displayName,
         date: new Date().getTime().toString(),
         userRef: auth.currentUser.uid,
+        docID,
       }
 
       // store image in firebase
@@ -90,14 +92,13 @@ const NewPostForm = () => {
             return
           })
         newPost = { ...newPost, imgURLS }
-        await addDoc(collection(db, "posts"), newPost)
+        await setDoc(doc(db, "posts", docID), newPost)
       }
 
       toast.success("Your post is uploaded")
       return () => document.querySelector(".form").reset()
     } catch (error) {
       toast.error("Post not uploaded")
-      // console.log(error)
     }
   }
 
